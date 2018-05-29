@@ -5,6 +5,7 @@ class CargoPlugin implements Plugin<Project> {
         def extension = project.android.externalNativeBuild.extensions.create('cargo', CargoPluginExtension, project)
         def cargoBuild = project.tasks.create('cargoBuild', CargoBuild) {
             manifestPath = extension.manifestPath
+            splits = project.android.splits
         }
 
         project.tasks.whenTaskAdded { t ->
@@ -29,9 +30,16 @@ class CargoPluginExtension {
 
 class CargoBuild extends DefaultTask {
     final Property<String> manifestPath = project.objects.property(String)
+    final Property<com.android.build.gradle.internal.dsl.Splits> splits = project.objects.property(com.android.build.gradle.internal.dsl.Splits)
 
     @TaskAction
     void run() {
+        def com.android.build.gradle.internal.dsl.Splits splits = this.splits.get()
+
+        splits.abi.getApplicableFilters().each { s ->
+            logger.info "#### SPLIT " + s
+        }
+
         logger.info "#### BUILD at " + manifestPath.get()
     }
 }
@@ -59,9 +67,9 @@ android {
         cargo {
             path "src/main/rust/Cargo.toml"
         }
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-        }
+//        cmake {
+//            path "src/main/cpp/CMakeLists.txt"
+//        }
     }
 
     splits {
