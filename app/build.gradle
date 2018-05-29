@@ -1,5 +1,43 @@
 apply plugin: 'com.android.application'
 
+class CargoPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        def extension = project.android.externalNativeBuild.extensions.create('cargo', CargoPluginExtension, project)
+        def cargoBuild = project.tasks.create('cargoBuild', CargoBuild) {
+            manifestPath = extension.manifestPath
+        }
+
+        project.tasks.whenTaskAdded { t ->
+            if (t.name == 'assembleDebug') {
+                t.dependsOn cargoBuild
+            }
+        }
+    }
+}
+
+class CargoPluginExtension {
+    final Property<String> manifestPath
+
+    CargoPluginExtension(Project project) {
+        manifestPath = project.objects.property(String)
+    }
+
+    void setPath(String value) {
+        manifestPath.set(value)
+    }
+}
+
+class CargoBuild extends DefaultTask {
+    final Property<String> manifestPath = project.objects.property(String)
+
+    @TaskAction
+    void run() {
+        logger.info "#### BUILD at " + manifestPath.get()
+    }
+}
+
+apply plugin: CargoPlugin
+
 android {
     compileSdkVersion 25
     defaultConfig {
@@ -16,7 +54,11 @@ android {
                     'proguard-rules.pro'
         }
     }
+
     externalNativeBuild {
+        cargo {
+            path "src/main/rust/Cargo.toml"
+        }
         cmake {
             path "src/main/cpp/CMakeLists.txt"
         }
@@ -33,7 +75,8 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:25.4.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation files('/Users/nercury/.gradle/caches/modules-2/files-2.1/com.android.tools.build/gradle-core/3.1.2/36e59348ddd26cbed10061dd4760e8ee030b88e4/gradle-core-3.1.2-sources.jar')
 }
