@@ -9,6 +9,8 @@ class CargoPlugin implements Plugin<Project> {
         }
 
         project.tasks.whenTaskAdded { t ->
+            logger.info "#### TASK ADDED " + t.name
+
             if (t.name == 'assembleDebug') {
                 t.dependsOn cargoBuild
             }
@@ -32,15 +34,44 @@ class CargoBuild extends DefaultTask {
     final Property<String> manifestPath = project.objects.property(String)
     final Property<com.android.build.gradle.internal.dsl.Splits> splits = project.objects.property(com.android.build.gradle.internal.dsl.Splits)
 
+    final Map<String, String> abiToRustTargetMap = [
+            "armeabi": "arm-linux-androideabi",
+            "armeabi-v7a": "armv7-linux-androideabi",
+            "arm64-v8a": "aarch64-linux-android",
+            "x86": "i686-linux-android",
+    ]
+
     @TaskAction
     void run() {
         def com.android.build.gradle.internal.dsl.Splits splits = this.splits.get()
 
-        splits.abi.getApplicableFilters().each { s ->
-            logger.info "#### SPLIT " + s
+        def rustTargets = splits.abi.getApplicableFilters().toArray().collect { abiToRustTargetMap[it.toString()] }
+
+        rustTargets.each { s ->
+            logger.info "#### TARGET " + s
         }
 
-        logger.info "#### BUILD at " + manifestPath.get()
+        def manifestPath = manifestPath.get()
+
+        rustTargets.each { target ->
+            def projectDir = project.properties.get('projectDir')
+            def fullManifestPath = new File(projectDir, manifestPath)
+
+            println "building rust lib " + fullManifestPath + " for " + target + " target"
+
+            def sout = new StringBuilder(), serr = new StringBuilder()
+            def proc = ('cargo build --target ' + target + ' --manifest-path ' + fullManifestPath).execute()
+            proc.consumeProcessOutput(sout, serr)
+            proc.waitFor()
+
+            if (proc.exitValue()) {
+                logger.error "$serr"
+                logger.error "Make sure you have Rust target " + target + " installed"
+            } else {
+                println "$sout"
+            }
+            assert !proc.exitValue()
+        }
     }
 }
 
