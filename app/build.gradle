@@ -45,7 +45,11 @@ class CargoBuild extends DefaultTask {
     void run() {
         def com.android.build.gradle.internal.dsl.Splits splits = this.splits.get()
 
-        def rustTargets = splits.abi.getApplicableFilters().toArray().collect { abiToRustTargetMap[it.toString()] }
+        println System.getenv('PATH')
+
+        def rustTargets = splits.abi.getApplicableFilters().toArray().collect {
+            abiToRustTargetMap[it.toString()]
+        }
 
         rustTargets.each { s ->
             logger.info "#### TARGET " + s
@@ -55,12 +59,21 @@ class CargoBuild extends DefaultTask {
 
         rustTargets.each { target ->
             def projectDir = project.properties.get('projectDir')
+            def ndkPath = project.android.getNdkDirectory();
             def fullManifestPath = new File(projectDir, manifestPath)
 
+            println System.getProperty("java.io.tmpdir")
+            println ndkPath
             println "building rust lib " + fullManifestPath + " for " + target + " target"
 
             def sout = new StringBuilder(), serr = new StringBuilder()
-            def proc = ('cargo build --target ' + target + ' --manifest-path ' + fullManifestPath).execute()
+            def proc = ('cargo build -vvv --target ' + target + ' --manifest-path ' + fullManifestPath)
+            .execute(
+            [
+            "TMP=" + System.getProperty("java.io.tmpdir").replace('\\', "\\\\"),
+            "CC_armv7-linux-androideabi=C:\\Users\\Nerijus\\AppData\\Local\\Android\\Sdk\\ndk-bundle\\toolchains\\arm-linux-androideabi-4.9\\prebuilt\\windows-x86_64\\bin\\arm-linux-androideabi-gcc.exe",
+            "CFLAGS_armv7-linux-androideabi=-I C:\\Users\\Nerijus\\AppData\\Local\\Android\\Sdk\\ndk-bundle\\sysroot\\usr\\include"
+            ], projectDir)
             proc.consumeProcessOutput(sout, serr)
             proc.waitFor()
 

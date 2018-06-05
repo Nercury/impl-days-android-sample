@@ -3,7 +3,7 @@ name = "hello-jni"
 version = "0.0.1"
 
 [dependencies]
-jni = "0.10.1"
+jni = { version = "0.10.1", default-features = false }
 
 [lib]
 crate-type = ["cdylib"]
