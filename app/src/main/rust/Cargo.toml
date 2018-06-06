@@ -1,6 +1,7 @@
 [package]
 name = "hello-jni"
 version = "0.0.1"
+build = true
 
 [dependencies]
 jni = { version = "0.10.1", default-features = false }

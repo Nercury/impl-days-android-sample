@@ -72,7 +72,8 @@ class CargoBuild extends DefaultTask {
             [
             "TMP=" + System.getProperty("java.io.tmpdir").replace('\\', "\\\\"),
             "CC_armv7-linux-androideabi=C:\\Users\\Nerijus\\AppData\\Local\\Android\\Sdk\\ndk-bundle\\toolchains\\arm-linux-androideabi-4.9\\prebuilt\\windows-x86_64\\bin\\arm-linux-androideabi-gcc.exe",
-            "CFLAGS_armv7-linux-androideabi=-I C:\\Users\\Nerijus\\AppData\\Local\\Android\\Sdk\\ndk-bundle\\sysroot\\usr\\include"
+            "CFLAGS_armv7-linux-androideabi=" +
+                    "-I C:\\Users\\Nerijus\\AppData\\Local\\Android\\Sdk\\ndk-bundle\\sysroot\\usr\\include"
             ], projectDir)
             proc.consumeProcessOutput(sout, serr)
             proc.waitFor()

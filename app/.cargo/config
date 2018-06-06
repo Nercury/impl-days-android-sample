@@ -1,2 +1,7 @@
 [target.armv7-linux-androideabi]
+ar="C:\\Users\\Nerijus\\AppData\\Local\\Android\\Sdk\\ndk-bundle\\toolchains\\arm-linux-androideabi-4.9\\prebuilt\\windows-x86_64\\bin\\arm-linux-androideabi-ar.exe"
 linker="C:\\Users\\Nerijus\\AppData\\Local\\Android\\Sdk\\ndk-bundle\\toolchains\\arm-linux-androideabi-4.9\\prebuilt\\windows-x86_64\\bin\\arm-linux-androideabi-gcc.exe"
+rustflags=[
+    "-L", "C:\\Users\\Nerijus\\AppData\\Local\\Android\\Sdk\\ndk-bundle\\platforms\\android-24\\arch-arm\\usr\\lib"
+]
+
