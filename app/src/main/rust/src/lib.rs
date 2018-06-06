@@ -10,13 +10,5 @@ pub extern "system" fn Java_com_example_hellojni_HelloJni_stringFromJNI(
     env: JNIEnv,
     _this: JObject
 ) -> jstring {
-    env.new_string("Hello from Rust").expect("Could not create string").into_inner()
-}
-
-#[link(name = "crtbegin_so")]
-mod crtbegin {
-}
-
-#[link(name = "crtend_so")]
-mod crtend {
+    env.new_string("Hello from Rust, hurray!").expect("Could not create string").into_inner()
 }

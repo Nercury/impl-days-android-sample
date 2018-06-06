@@ -47,27 +47,27 @@ class CargoBuild extends DefaultTask {
 
         println System.getenv('PATH')
 
-        def rustTargets = splits.abi.getApplicableFilters().toArray().collect {
-            abiToRustTargetMap[it.toString()]
+        def abiTargets = splits.abi.getApplicableFilters().toArray().collect {
+            [ abi: it.toString(), target: abiToRustTargetMap[it.toString()] ]
         }
 
-        rustTargets.each { s ->
-            logger.info "#### TARGET " + s
+        abiTargets.each { s ->
+            logger.info "#### TARGET " + s.target
         }
 
         def manifestPath = manifestPath.get()
 
-        rustTargets.each { target ->
+        abiTargets.each { item ->
             def projectDir = project.properties.get('projectDir')
             def ndkPath = project.android.getNdkDirectory();
             def fullManifestPath = new File(projectDir, manifestPath)
 
             println System.getProperty("java.io.tmpdir")
             println ndkPath
-            println "building rust lib " + fullManifestPath + " for " + target + " target"
+            println "building rust lib " + fullManifestPath + " for " + item.target + " target"
 
             def sout = new StringBuilder(), serr = new StringBuilder()
-            def proc = ('cargo build -vvv --target ' + target + ' --manifest-path ' + fullManifestPath)
+            def proc = ('cargo build -vvv --target ' + item.target + ' --manifest-path ' + fullManifestPath)
             .execute(
             [
             "TMP=" + System.getProperty("java.io.tmpdir").replace('\\', "\\\\"),
@@ -80,11 +80,35 @@ class CargoBuild extends DefaultTask {
 
             if (proc.exitValue()) {
                 logger.error "$serr"
-                logger.error "Make sure you have Rust target " + target + " installed"
+                logger.error "Make sure you have Rust target " + item.target + " installed"
             } else {
                 println "$sout"
             }
             assert !proc.exitValue()
+
+            def rustTargetDir = new File(new File(fullManifestPath, "").parent, "target")
+            def rustTargetPlatformDir = new File(rustTargetDir, item.target)
+            def rustTargetPlatformBuildDir = new File(rustTargetPlatformDir, "debug")
+            def outputLib = new File(rustTargetPlatformBuildDir, "libhello_jni.so")
+
+            def srcDir = new File(projectDir, "src")
+            def srcMainDir = new File(srcDir, "main")
+            def jniLibsDir = new File(srcMainDir, "jniLibs")
+            def jniLibsAbiDir = new File(jniLibsDir, item.abi)
+            jniLibsAbiDir.mkdirs()
+
+            def outputFile = new File(jniLibsAbiDir, "libhello-jni.so")
+            outputFile.delete()
+
+            InputStream is = new FileInputStream(outputLib);
+            OutputStream os = new FileOutputStream(outputFile);
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) > 0) {
+                os.write(buffer, 0, length);
+            }
+            is.close();
+            os.close();
         }
     }
 }
@@ -122,7 +146,8 @@ android {
             enable true
             reset()
 
-            include "x86", "armeabi-v7a", "arm64-v8a"
+            //include "x86", "armeabi-v7a", "arm64-v8a"
+            include "armeabi-v7a"
         }
     }
 }
@@ -131,5 +156,5 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:25.4.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    implementation files('/Users/nercury/.gradle/caches/modules-2/files-2.1/com.android.tools.build/gradle-core/3.1.2/36e59348ddd26cbed10061dd4760e8ee030b88e4/gradle-core-3.1.2-sources.jar')
+//    implementation files('/Users/nercury/.gradle/caches/modules-2/files-2.1/com.android.tools.build/gradle-core/3.1.2/36e59348ddd26cbed10061dd4760e8ee030b88e4/gradle-core-3.1.2-sources.jar')
 }
