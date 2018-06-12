@@ -1,10 +1,11 @@
 buildscript {
     repositories {
+        google()
         jcenter()
         mavenLocal()
-        maven {
-            url 'file:///Users/nercury/.m2/repository'
-        }
+//        maven {
+//            url 'file:///Users/nercury/.m2/repository'
+//        }
     }
     dependencies {
         classpath 'com.nercury:cargobuild:1.0.0'
@@ -31,7 +32,7 @@ apply plugin: 'com.nercury.cargobuild'
 //
 //            if (t.name == 'assembleDebug') {
 //                t.dependsOn cargoBuildTask
-//                cargoBuildTask.dependsOn updateCargoConfigTask
+//                 cargoBuildTask.dependsOn updateCargoConfigTask
 //            }
 //        }
 //    }
@@ -175,9 +176,9 @@ android {
     }
 
     externalNativeBuild {
-//        cargo {
-//            path "src/main/rust/Cargo.toml"
-//        }
+        cargo {
+            path "src/main/rust/Cargo.toml"
+        }
 //        cmake {
 //            path "src/main/cpp/CMakeLists.txt"
 //        }
