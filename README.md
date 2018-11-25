@@ -30,30 +30,30 @@ Android has greatly simplified the way C++ projects are built (compared to the w
 As long as you use CMake, it is enough to add this configuration to the `build.gradle`:
 
 ```groovy
-    externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-        }
+externalNativeBuild {
+    cmake {
+        path "src/main/cpp/CMakeLists.txt"
     }
+}
 ```
 
-... and the plugin does the rest: passes correct build environment to CMake, passes correct
+... and the plugin does the rest: passes the correct build environment to CMake, passes the correct
 NDK headers and builds the shared library and puts it in a standard location so that it can be
 loaded and used from Java (or Kotlin). It also takes care of building multiple libraries for
-all necessary architectures.
+all the necessary architectures.
 
 ### The Goal
 
-We want to do the same, but with Rust! We will create the plugin that compile Rust library that
- can be loaded from Java the same way the CMake library is loaded. 
+We want to do the same, but with Rust! We will create the plugin that can compile Rust library. 
+This library should be loadable from Java the same way the CMake library is. 
 We want to be able to include this configuration in Android project:
 
 ```groovy
-    externalNativeBuild {
-        cargo {
-            path "src/main/rust/Cargo.toml"
-        }
+externalNativeBuild {
+    cargo {
+        path "src/main/rust/Cargo.toml"
     }
+}
 ```
 
 The plugin should take care of passing all the necessary parameters to the Cargo to make this
@@ -61,13 +61,13 @@ happen.
 
 ### The current state
 
-Inside the `build.gradle` file, you will find huge chunk of commented-out code. It contains
-the plugin `class CargoBuild extends DefaultTask` that is proves that this is possible:
-we can extend gradle DSL to add the `cargo` property to `externalNativeBuild`, and we can query 
+Inside the `build.gradle` file, you will find a huge chunk of commented-out code. It contains
+the plugin `class CargoBuild extends DefaultTask` that proves that this task we outlined is possible:
+it is possible to extend gradle DSL and add the `cargo` property to `externalNativeBuild`, it is possible to query 
 this property when the Android project is built. The actual plugin code is incomplete and hacked
 together just to get something working.
 
-This inline groovy plugin is not a good way to do things. The better approach is to move
+However, this inline Groovy plugin is not a good way to do things. The better approach is to move
 this plugin to a separate project. It can then be imported by adding a dependency:
 
 ```groovy
@@ -82,9 +82,12 @@ And then applying this plugin down bellow:
 apply plugin: 'com.nercury.cargobuild'
 ```
 
+Currently this crashes (because the DSL is not patched properly yet), 
+but it does dump out all kinds of information in the console.
+
 ### The plugin
 
-The plugin is written in kotlin, and does not work at this moment.
+The plugin is written in Kotlin, and does not work at this moment.
 It can be found here: https://github.com/Nercury/gradle-cargo-plugin
 
 To work on plugin locally, it has a gradle task to publish it to local maven repository.
@@ -93,4 +96,4 @@ able to pick this plugin up.
 
 ### The goals of this repository
 
-This repository will eventually become the example how to use this plugin.
+This repository will eventually become the example of how to use this plugin.
