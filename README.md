@@ -4,8 +4,8 @@
 
 What are we doing here?
 
-Android has greatly simplified the way C++ projects are built. As long as you use CMake,
-it is enough to add this configuration to the `build.gradle`:
+Android has greatly simplified the way C++ projects are built (compared to the way it was done previously). 
+As long as you use CMake, it is enough to add this configuration to the `build.gradle`:
 
 ```groovy
     externalNativeBuild {
