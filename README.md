@@ -1,54 +1,74 @@
-Hello JNI
-=========
-Hello JNI is an Android sample that uses JNI to call C code from a Android Java Activity.
+## External Native Build `cargo`
 
-This sample uses the new [Android Studio CMake plugin](http://tools.android.com/tech-docs/external-c-builds) with C++ support.
-For how to use Android Studio, refer to [Hello-CMake codelab](https://codelabs.developers.google.com/codelabs/android-studio-cmake/index.html)
+## Background and detailed explanation
 
-Pre-requisites
---------------
-- Android Studio 2.2+ with [NDK](https://developer.android.com/ndk/) bundle.
+What are we doing here?
 
-Getting Started
----------------
-1. [Download Android Studio](http://developer.android.com/sdk/index.html)
-1. Launch Android Studio.
-1. Open the sample directory.
-1. Open *File/Project Structure...*
-  - Click *Download* or *Select NDK location*.
-1. Click *Tools/Android/Sync Project with Gradle Files*.
-1. Click *Run/Run 'app'*.
+Android has greatly simplified the way C++ projects are built. As long as you use CMake,
+it is enough to add this configuration to the `build.gradle`:
 
-Screenshots
------------
-![screenshot](screenshot.png)
+```groovy
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+        }
+    }
+```
 
-Support
--------
-If you've found an error in these samples, please [file an issue](https://github.com/googlesamples/android-ndk/issues/new).
+... and the plugin does the rest: passes correct build environment to CMake, passes correct
+NDK headers and builds the shared library and puts it in a standard location so that it can be
+loaded and used from Java (or Kotlin). It also takes care of building multiple libraries for
+all necessary architectures.
 
-Patches are encouraged, and may be submitted by [forking this project](https://github.com/googlesamples/android-ndk/fork) and
-submitting a pull request through GitHub. Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for more details.
+### The Goal
 
-- [Stack Overflow](http://stackoverflow.com/questions/tagged/android-ndk)
-- [Google+ Community](https://plus.google.com/communities/105153134372062985968)
-- [Android Tools Feedbacks](http://tools.android.com/feedback)
+We want to do the same, but with Rust! We will create the plugin that compile Rust library that
+ can be loaded from Java the same way the CMake library is loaded. 
+We want to be able to include this configuration in Android project:
 
-License
--------
-Copyright 2015 Google, Inc.
+```groovy
+    externalNativeBuild {
+        cargo {
+            path "src/main/rust/Cargo.toml"
+        }
+    }
+```
 
-Licensed to the Apache Software Foundation (ASF) under one or more contributor
-license agreements.  See the NOTICE file distributed with this work for
-additional information regarding copyright ownership.  The ASF licenses this
-file to you under the Apache License, Version 2.0 (the "License"); you may not
-use this file except in compliance with the License.  You may obtain a copy of
-the License at
+The plugin should take care of passing all the necessary parameters to the Cargo to make this
+happen.
 
-  http://www.apache.org/licenses/LICENSE-2.0
+### The current state
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
-License for the specific language governing permissions and limitations under
-the License.
+Inside the `build.gradle` file, you will find huge chunk of commented-out code. It contains
+the plugin `class CargoBuild extends DefaultTask` that is proves that this is possible:
+we can extend gradle DSL to add the `cargo` property to `externalNativeBuild`, and we can query 
+this property when the Android project is built. The actual plugin code is incomplete and hacked
+together just to get something working.
+
+This inline groovy plugin is not a good way to do things. The better approach is to move
+this plugin to a separate project. It can then be imported by adding a dependency:
+
+```groovy
+dependencies {
+    classpath 'com.nercury:cargobuild:1.0.0'
+}
+```
+
+And then applying this plugin down bellow:
+
+```groovy
+apply plugin: 'com.nercury.cargobuild'
+```
+
+### The plugin
+
+The plugin is written in kotlin, and does not work at this moment.
+It can be found here: https://github.com/Nercury/gradle-cargo-plugin
+
+To work on plugin locally, it has a gradle task to publish it to local maven repository.
+To do that, run `publishToMavenLocal` gradle task. Then, this Android project will be
+able to pick this plugin up.
+
+### The goals of this repository
+
+This repository will eventually become the example how to use this plugin.

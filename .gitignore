@@ -2,3 +2,4 @@
 /.gradle
 /.google
 /build
+.DS_Store
