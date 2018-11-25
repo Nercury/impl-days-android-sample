@@ -1,5 +1,27 @@
 ## External Native Build `cargo`
 
+Tasks
+
+- [ ] Plugin step to collect config from project environment
+    - [ ] `externalNativeBuild` `cargo`
+    - [ ] `architecture`
+    - [ ] `ndk` options with compiler paths for the `architecture`
+- [ ] Plugin step to discover cargo and probably rustc (invisible shell settings in gradle script)
+    - [ ] MacOS
+    - [ ] Linux
+    - [ ] Windows
+- [ ] Plugin step to figure out where to put built libs, create config model for that
+- [ ] Plugin step to configure build environment (stored in `.externalNativeBuild/cargo`)
+    - [ ] Override C compiler paths over `.cargo/config`
+    - [ ] Environment variables?
+    - [ ] Copying project there and patching it? (probably we should avoid this)
+- [ ] Build crates
+    - [ ] Build pure-rust lib
+    - [ ] Build rust lib with simple C dependency (`libz-sys`)
+    - [ ] Build rust lib with C dependency that depends on another C project (`freetype-sys`)
+    - [ ] Build rust lib that depends on CMake lib (`harfbuzz`)
+    - [ ] Build rust lib with a dependency that does crazy stuff in its build script (`sdl2`)
+
 ## Background and detailed explanation
 
 What are we doing here?
